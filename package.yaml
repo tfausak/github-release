@@ -39,4 +39,4 @@ license-file: LICENSE.markdown
 maintainer: Taylor Fausak
 name: github-release
 synopsis: Upload files to GitHub releases.
-version: '0.1.1'
+version: '0.1.2'
