@@ -1,0 +1,24 @@
+build_script:
+- stack setup
+- stack --no-terminal build --only-dependencies
+cache:
+- c:\s
+environment:
+  GITHUB_TOKEN:
+    secure: TODO
+  STACK_ROOT: c:\s
+install:
+- curl --output stack.zip --location --insecure http://www.stackage.org/stack/windows-x86_64
+- 7z x stack.zip stack.exe
+on_success:
+- ps: |
+    if ($env:APPVEYOR_REPO_TAG_NAME)
+    {
+      7z a github-release.zip "$(./stack.exe path --local-install-root)/bin/github-release.exe"
+      stack exec -- github-release upload --token $env:GITHUB_TOKEN --owner tfausak --repo github-release --tag $env:APPVEYOR_REPO_TAG_NAME --file github-release.zip --name github-release-$env:APPVEYOR_REPO_TAG_NAME-windows.zip
+    }
+platform: x64
+test_script:
+- stack.exe --no-terminal build --pedantic
+- stack.exe sdist
+version: '{build}'
