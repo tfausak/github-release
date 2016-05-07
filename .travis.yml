@@ -8,7 +8,7 @@ after_success:
   then
     mkdir -p "$HOME/.stack/upload"
     echo "{ \"username\": \"$HACKAGE_USERNAME\", \"password\": \"$HACKAGE_PASSWORD\" }" > "$HOME/.stack/upload/credentials.json"
-    stack upload --no-signature --pvp-bounds both .
+    stack upload --no-signature .
   fi
 - | # Add compressed binary to GitHub release.
   if test "$TRAVIS_TAG" -a "$GITHUB_TOKEN"
@@ -46,5 +46,5 @@ language: c
 script:
 - stack setup
 - stack --no-terminal build --pedantic
-- stack sdist --pvp-bounds both
+- stack sdist
 sudo: false
