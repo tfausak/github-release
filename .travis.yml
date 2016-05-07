@@ -19,7 +19,7 @@ after_success:
       --user tfausak \
       --repo github-release \
       --tag "$TRAVIS_TAG" \
-      --path github-release.gz \
+      --file github-release.gz \
       --name "github-release-$TRAVIS_TAG-$TRAVIS_OS_NAME.gz"
   fi
 before_install:

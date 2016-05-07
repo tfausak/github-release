@@ -25,12 +25,12 @@ import qualified Text.Printf as Printf
 
 data Command
     = Upload
-        { name :: String Options.<?>
+        { file :: FilePath Options.<?>
+            "The path to the local file to upload."
+        , name :: String Options.<?>
             "The name to give the file on the release."
         , owner :: String Options.<?>
             "The GitHub owner, either a user or organization."
-        , path :: FilePath Options.<?>
-            "The path to the local file to upload."
         , repo :: String Options.<?>
             "The GitHub repository name."
         , tag :: String Options.<?>
@@ -50,20 +50,20 @@ main = do
 
 runCommand :: Command -> IO ()
 runCommand command = case command of
-    Upload aName anOwner aPath aRepo aTag aToken -> upload
+    Upload aName anOwner aFile aRepo aTag aToken -> upload
         (Options.unHelpful aToken)
         (Options.unHelpful anOwner)
         (Options.unHelpful aRepo)
         (Options.unHelpful aTag)
-        (Options.unHelpful aPath)
+        (Options.unHelpful aFile)
         (Options.unHelpful aName)
     Version -> putStrLn versionString
 
 upload :: String -> String -> String -> String -> FilePath -> String -> IO ()
-upload aToken anOwner aRepo aTag aPath aName = do
+upload aToken anOwner aRepo aTag aFile aName = do
     manager <- Client.newManager TLS.tlsManagerSettings
     uploadUrl <- getUploadUrl manager anOwner aRepo aTag
-    response <- uploadFile manager uploadUrl aToken aPath aName
+    response <- uploadFile manager uploadUrl aToken aFile aName
     case HTTP.statusCode (Client.responseStatus response) of
         201 -> pure ()
         _ -> do
@@ -100,8 +100,8 @@ versionString :: String
 versionString = Version.showVersion This.version
 
 uploadFile :: Client.Manager -> Template.UriTemplate -> String -> FilePath -> String -> IO (Client.Response BSL.ByteString)
-uploadFile manager template aToken aPath aName = do
-    contents <- BSL.readFile aPath
+uploadFile manager template aToken aFile aName = do
+    contents <- BSL.readFile aFile
     let body = Client.RequestBodyLBS contents
     uploadBody manager template aToken body aName
 

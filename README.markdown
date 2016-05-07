@@ -12,7 +12,7 @@ github-release upload \
   --owner 'someone' \
   --repo 'something' \
   --tag '1.2.3' \
-  --path 'path/to/example.tgz' \
+  --file 'path/to/example.tgz' \
   --name 'example-1.2.3.tgz'
 ```
 
