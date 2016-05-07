@@ -8,7 +8,7 @@ after_success:
   then
     mkdir -p "$HOME/.stack/upload"
     echo "{ \"username\": \"$HACKAGE_USERNAME\", \"password\": \"$HACKAGE_PASSWORD\" }" > "$HOME/.stack/upload/credentials.json"
-    stack upload --no-signature --pvp-bounds both
+    stack upload --no-signature --pvp-bounds both .
   fi
 - | # Add compressed binary to GitHub release.
   if test "$TRAVIS_TAG" -a "$GITHUB_TOKEN"
@@ -16,7 +16,7 @@ after_success:
     gzip --best --to-stdout "$(stack path --local-install-root)/bin/github-release" > github-release.gz
     stack exec -- github-release upload \
       --token "$GITHUB_TOKEN" \
-      --user tfausak \
+      --owner tfausak \
       --repo github-release \
       --tag "$TRAVIS_TAG" \
       --file github-release.gz \

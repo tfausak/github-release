@@ -50,7 +50,7 @@ main = do
 
 runCommand :: Command -> IO ()
 runCommand command = case command of
-    Upload aName anOwner aFile aRepo aTag aToken -> upload
+    Upload aFile aName anOwner aRepo aTag aToken -> upload
         (Options.unHelpful aToken)
         (Options.unHelpful anOwner)
         (Options.unHelpful aRepo)
