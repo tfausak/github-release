@@ -16,6 +16,8 @@ github-release upload \
   --name 'example-1.2.3.tgz'
 ```
 
+Inspired by <https://github.com/aktau/github-release>.
+
 [GitHub Release]: https://github.com/tfausak/github-release
 [Version badge]: https://www.stackage.org/package/github-release/badge/nightly?label=version
 [version]: https://www.stackage.org/package/github-release
