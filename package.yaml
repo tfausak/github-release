@@ -1,0 +1,42 @@
+category: Utility
+description: GitHub Release is a command-line utility for uploading files to GitHub
+  releases.
+executables:
+  github-release:
+    dependencies:
+    - base
+    - github-release
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: executable
+extra-source-files:
+- CHANGELOG.markdown
+- package.yaml
+- README.markdown
+- stack.yaml
+ghc-options: -Wall
+github: tfausak/github-release
+library:
+  dependencies:
+  - aeson
+  - base
+  - bytestring
+  - http-client
+  - http-client-tls
+  - http-types
+  - mime-types
+  - optparse-generic
+  - text
+  - unordered-containers
+  - uri-templater
+  other-modules: Paths_github_release
+  source-dirs: library
+license: MIT
+license-file: LICENSE.markdown
+maintainer: Taylor Fausak
+name: github-release
+synopsis: Upload files to GitHub releases.
+version: '0.0.0'
