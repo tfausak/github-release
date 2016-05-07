@@ -62,7 +62,7 @@ runCommand command = case command of
 upload :: String -> String -> String -> String -> FilePath -> String -> IO ()
 upload aToken anOwner aRepo aTag aFile aName = do
     manager <- Client.newManager TLS.tlsManagerSettings
-    uploadUrl <- getUploadUrl manager anOwner aRepo aTag
+    uploadUrl <- getUploadUrl manager aToken anOwner aRepo aTag
     response <- uploadFile manager uploadUrl aToken aFile aName
     case HTTP.statusCode (Client.responseStatus response) of
         201 -> pure ()
@@ -71,27 +71,41 @@ upload aToken anOwner aRepo aTag aFile aName = do
             BSL.hPutStr IO.stderr (Client.responseBody response)
             fail "Failed to upload file to release!"
 
-getUploadUrl :: Client.Manager -> String -> String -> String -> IO Template.UriTemplate
-getUploadUrl manager anOwner aRepo aTag = do
-    (Right json) <- getTag manager anOwner aRepo aTag
+getUploadUrl :: Client.Manager -> String -> String -> String -> String -> IO Template.UriTemplate
+getUploadUrl manager aToken anOwner aRepo aTag = do
+    (Right json) <- getTag manager aToken anOwner aRepo aTag
     let (Just (Aeson.String text)) = HashMap.lookup (Text.pack "upload_url") json
     let uploadUrl = Text.unpack text
     let (Right template) = Template.parseTemplate uploadUrl
     pure template
 
-getTag :: Client.Manager -> String -> String -> String -> IO (Either String Aeson.Object)
-getTag manager anOwner aRepo aTag = do
+getTag :: Client.Manager -> String -> String -> String -> String -> IO (Either String Aeson.Object)
+getTag manager aToken anOwner aRepo aTag = do
     let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
     let url = Printf.printf format anOwner aRepo aTag
     initialRequest <- Client.parseUrl url
-    let request = initialRequest { Client.requestHeaders = [userAgentHeader] }
+    let request = initialRequest
+            { Client.requestHeaders =
+                [ authorizationHeader aToken
+                , userAgentHeader
+                ]
+            }
     response <- Client.httpLbs request manager
     let body = Client.responseBody response
     let json = Aeson.eitherDecode body
     return json
 
+authorizationHeader :: String -> HTTP.Header
+authorizationHeader aToken =
+    ( HTTP.hAuthorization
+    , BS8.pack (Printf.printf "token %s" aToken)
+    )
+
 userAgentHeader :: HTTP.Header
-userAgentHeader = (HTTP.hUserAgent, BS8.pack userAgent)
+userAgentHeader =
+    ( HTTP.hUserAgent
+    , BS8.pack userAgent
+    )
 
 userAgent :: String
 userAgent = Printf.printf "%s/%s-%s" "tfausak" "github-release" versionString
@@ -115,7 +129,7 @@ uploadBody manager template aToken body aName = do
             { Client.method = BS8.pack "POST"
             , Client.requestBody = body
             , Client.requestHeaders =
-                [ (HTTP.hAuthorization, BS8.pack (Printf.printf "token %s" aToken))
+                [ authorizationHeader aToken
                 , (HTTP.hContentType, MIME.defaultMimeLookup (Text.pack aName))
                 , userAgentHeader
                 ]
