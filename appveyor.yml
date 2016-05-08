@@ -15,7 +15,7 @@ on_success:
     if ($env:APPVEYOR_REPO_TAG_NAME)
     {
       7z a github-release.zip "$(./stack.exe path --local-install-root)/bin/github-release.exe"
-      ./stack.exe exec -- github-release upload --token $env:GITHUB_TOKEN --owner tfausak --repo github-release --tag $env:APPVEYOR_REPO_TAG_NAME --file github-release.zip --name github-release-$env:APPVEYOR_REPO_TAG_NAME-windows.zip
+      ./stack.exe exec -- github-release upload --token "$env:GITHUB_TOKEN" --owner "tfausak" --repo "github-release" --tag "$env:APPVEYOR_REPO_TAG_NAME" --file "github-release.zip" --name "github-release-$env:APPVEYOR_REPO_TAG_NAME-windows.zip"
     }
 platform: x64
 test_script:
