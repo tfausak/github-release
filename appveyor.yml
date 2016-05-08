@@ -5,7 +5,7 @@ cache:
 - c:\s
 environment:
   GITHUB_TOKEN:
-    secure: TODO
+    secure: usJN4yJwI4cSfVwGa5Bmy6Z+vZww4qswBiCq4/YHg25OfE8BkNmQKQ6UJyLwHF8B
   STACK_ROOT: c:\s
 install:
 - curl --output stack.zip --location --insecure http://www.stackage.org/stack/windows-x86_64
