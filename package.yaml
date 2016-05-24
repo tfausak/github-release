@@ -22,7 +22,7 @@ github: tfausak/github-release
 library:
   dependencies:
   - aeson >=0.9.0.1 && <0.12
-  - base >=4.8.2.0 && <4.9
+  - base >=4.8.2.0 && <4.10
   - bytestring >=0.10.6.0 && <0.11
   - http-client >=0.4.28 && <0.5
   - http-client-tls >=0.2.4 && <0.3
