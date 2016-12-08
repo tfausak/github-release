@@ -8,7 +8,7 @@ environment:
     secure: usJN4yJwI4cSfVwGa5Bmy6Z+vZww4qswBiCq4/YHg25OfE8BkNmQKQ6UJyLwHF8B
   STACK_ROOT: c:\s
 install:
-- curl --output stack.zip --location --insecure http://www.stackage.org/stack/windows-x86_64
+- curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.2.0/stack-1.2.0-windows-x86_64.zip
 - 7z x stack.zip stack.exe
 on_success:
 - ps: |
