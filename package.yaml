@@ -24,8 +24,8 @@ library:
   - aeson >=0.9.0.1 && <1.1
   - base >=4.8.2.0 && <4.10
   - bytestring >=0.10.6.0 && <0.11
-  - http-client >=0.4.28 && <0.5
-  - http-client-tls >=0.2.4 && <0.3
+  - http-client >=0.4.30 && <0.6
+  - http-client-tls >=0.2.4 && <0.4
   - http-types >=0.9 && <0.10
   - mime-types >=0.1.0.7 && <0.2
   - optparse-generic >=1.1.0 && <1.2

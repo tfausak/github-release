@@ -83,7 +83,7 @@ getTag :: Client.Manager -> String -> String -> String -> String -> IO (Either S
 getTag manager aToken anOwner aRepo aTag = do
     let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
     let url = Printf.printf format anOwner aRepo aTag
-    initialRequest <- Client.parseUrl url
+    initialRequest <- Client.parseUrlThrow url
     let request = initialRequest
             { Client.requestHeaders =
                 [ authorizationHeader aToken
@@ -124,7 +124,7 @@ uploadBody manager template aToken body aName = do
     let url = Template.render template
             [ ("name", Template.WrappedValue (Template.Single aName))
             ]
-    initialRequest <- Client.parseUrl url
+    initialRequest <- Client.parseUrlThrow url
     let request = initialRequest
             { Client.method = BS8.pack "POST"
             , Client.requestBody = body
