@@ -34,7 +34,7 @@ can install and use it from the command line.
 
 ``` sh
 stack --resolver nightly install github-release
-stack exec -- github release upload # as above ...
+stack exec -- github-release upload # as above ...
 ```
 
 Or you can use it from Haskell.

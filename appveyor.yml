@@ -1,25 +1,26 @@
-build_script:
-- stack.exe setup
-- stack.exe --no-terminal build --only-dependencies
+version: '{build}'
+platform: x64
 cache:
-- c:\s
+  - c:\s
 environment:
   GITHUB_TOKEN:
-    secure: usJN4yJwI4cSfVwGa5Bmy6Z+vZww4qswBiCq4/YHg25OfE8BkNmQKQ6UJyLwHF8B
+    secure: L/78Qw3wSosowhhilcm/u+wHOM97yiHdXgz8pbwRD3PQVtVSB1lZQ/BDaIm8RpsA
   STACK_ROOT: c:\s
+
 install:
-- ps: curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.2.0/stack-1.2.0-windows-x86_64.zip
-- 7z x stack.zip stack.exe
-on_success:
-- ps: |
-    if ($env:APPVEYOR_REPO_TAG_NAME)
-    {
-      cp "$(./stack.exe path --local-install-root)/bin/github-release.exe" github-release.exe
-      7z a github-release.zip github-release.exe
-      ./github-release.exe upload --token $env:GITHUB_TOKEN --owner tfausak --repo github-release --tag $env:APPVEYOR_REPO_TAG_NAME --file github-release.zip --name github-release-$env:APPVEYOR_REPO_TAG_NAME-windows.zip
-    }
-platform: x64
+  - ps: curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.5.1/stack-1.5.1-windows-x86_64.zip
+  - 7z x stack.zip stack.exe
+build_script:
+  - stack.exe setup
+  - stack.exe --no-terminal build --only-dependencies
 test_script:
-- stack.exe --no-terminal build --pedantic
-- stack.exe sdist
-version: '{build}'
+  - stack.exe --no-terminal build --pedantic
+  - stack.exe sdist
+on_success:
+  - ps: |
+      if ($env:APPVEYOR_REPO_TAG_NAME)
+      {
+        cp "$(./stack.exe path --local-install-root)/bin/github-release.exe" github-release.exe
+        7z a github-release.zip github-release.exe
+        ./github-release.exe upload --token $env:GITHUB_TOKEN --owner tfausak --repo github-release --tag $env:APPVEYOR_REPO_TAG_NAME --file github-release.zip --name github-release-$env:APPVEYOR_REPO_TAG_NAME-windows.zip
+      }
