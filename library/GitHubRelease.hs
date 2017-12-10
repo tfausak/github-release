@@ -22,7 +22,6 @@ import qualified Network.URI.Template as Template
 import qualified Network.URI.Template.Types as Template
 import qualified Options.Generic as Options
 import qualified Paths_github_release as This
-import qualified System.IO as IO
 import qualified Text.Printf as Printf
 
 data Command
@@ -62,10 +61,7 @@ upload aToken anOwner aRepo aTag aFile aName = do
   response <- uploadFile manager uploadUrl aToken aFile aName
   case HTTP.statusCode (Client.responseStatus response) of
     201 -> pure ()
-    _ -> do
-      IO.hPrint IO.stderr response
-      BSL.hPutStr IO.stderr (Client.responseBody response)
-      fail "Failed to upload file to release!"
+    _ -> fail "Failed to upload file to release!"
 
 getUploadUrl
   :: Client.Manager
@@ -75,10 +71,18 @@ getUploadUrl
   -> String
   -> IO Template.UriTemplate
 getUploadUrl manager aToken anOwner aRepo aTag = do
-  (Right json) <- getTag manager aToken anOwner aRepo aTag
-  let (Just (Aeson.String text)) = HashMap.lookup (Text.pack "upload_url") json
+  json <- do
+    result <- getTag manager aToken anOwner aRepo aTag
+    case result of
+      Left problem -> fail ("Failed to get tag JSON: " ++ show problem)
+      Right json -> pure json
+  text <- case HashMap.lookup (Text.pack "upload_url") json of
+    Just (Aeson.String text) -> pure text
+    _ -> fail ("Failed to get upload URL: " ++ show json)
   let uploadUrl = Text.unpack text
-  let (Right template) = Template.parseTemplate uploadUrl
+  template <- case Template.parseTemplate uploadUrl of
+    Left problem -> fail ("Failed to parse URL template: " ++ show problem)
+    Right template -> pure template
   pure template
 
 getTag
@@ -91,7 +95,7 @@ getTag
 getTag manager aToken anOwner aRepo aTag = do
   let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
   let url = Printf.printf format anOwner aRepo aTag
-  initialRequest <- Client.parseUrlThrow url
+  initialRequest <- Client.parseRequest url
   let request =
         initialRequest
         {Client.requestHeaders = [authorizationHeader aToken, userAgentHeader]}
@@ -137,7 +141,7 @@ uploadBody manager template aToken body aName = do
         Template.render
           template
           [("name", Template.WrappedValue (Template.Single aName))]
-  initialRequest <- Client.parseUrlThrow url
+  initialRequest <- Client.parseRequest url
   let request =
         initialRequest
         { Client.method = BS8.pack "POST"
