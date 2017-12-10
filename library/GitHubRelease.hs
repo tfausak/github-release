@@ -22,12 +22,13 @@ import qualified Network.URI.Template as Template
 import qualified Network.URI.Template.Types as Template
 import qualified Options.Generic as Options
 import qualified Paths_github_release as This
+import qualified System.IO as IO
 import qualified Text.Printf as Printf
 
 data Command
   = Upload { file :: FilePath <?> "The path to the local file to upload."
           ,  name :: String <?> "The name to give the file on the release."
-          ,  owner :: String <?> "The GitHub owner, either a user or organization."
+          ,  owner :: Maybe String <?> "The GitHub owner, either a user or organization."
           ,  repo :: String <?> "The GitHub repository name."
           ,  tag :: String <?> "The tag name."
           ,  token :: String <?> "Your OAuth2 token."}
@@ -54,7 +55,7 @@ runCommand command =
         (Options.unHelpful aName)
     Version -> putStrLn versionString
 
-upload :: String -> String -> String -> String -> FilePath -> String -> IO ()
+upload :: String -> Maybe String -> String -> String -> FilePath -> String -> IO ()
 upload aToken anOwner aRepo aTag aFile aName = do
   manager <- Client.newManager TLS.tlsManagerSettings
   uploadUrl <- getUploadUrl manager aToken anOwner aRepo aTag
@@ -66,7 +67,7 @@ upload aToken anOwner aRepo aTag aFile aName = do
 getUploadUrl
   :: Client.Manager
   -> String
-  -> String
+  -> Maybe String
   -> String
   -> String
   -> IO Template.UriTemplate
@@ -88,11 +89,20 @@ getUploadUrl manager aToken anOwner aRepo aTag = do
 getTag
   :: Client.Manager
   -> String
-  -> String
+  -> Maybe String
   -> String
   -> String
   -> IO (Either String Aeson.Object)
-getTag manager aToken anOwner aRepo aTag = do
+getTag manager aToken rawOwner rawRepo aTag = do
+  (anOwner, aRepo) <- case break (== '/') rawRepo of
+    (aRepo, "") -> case rawOwner of
+      Nothing -> fail "Missing required option --owner."
+      Just anOwner -> pure (anOwner, aRepo)
+    (anOwner, aRepo) -> do
+      case rawOwner of
+        Nothing -> pure ()
+        Just _ -> IO.hPutStrLn IO.stderr "Ignoring --owner option."
+      pure (anOwner, drop 1 aRepo)
   let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
   let url = Printf.printf format anOwner aRepo aTag
   initialRequest <- Client.parseRequest url
