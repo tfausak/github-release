@@ -1,5 +1,5 @@
 name: github-release
-version: 1.0.7
+version: 1.1.0
 
 category: Utility
 description: GitHub Release uploads files to GitHub releases.
