@@ -3,7 +3,20 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-module GitHubRelease where
+module GitHubRelease
+  ( Command(..)
+  , main
+  , runCommand
+  , upload
+  , getUploadUrl
+  , getTag
+  , authorizationHeader
+  , userAgentHeader
+  , userAgent
+  , versionString
+  , uploadFile
+  , uploadBody
+  ) where
 
 import Options.Generic (type (<?>))
 
@@ -104,15 +117,16 @@ getTag manager aToken rawOwner rawRepo aTag = do
         Just _ -> IO.hPutStrLn IO.stderr "Ignoring --owner option."
       pure (anOwner, drop 1 aRepo)
   let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
-  let url = Printf.printf format anOwner aRepo aTag
+  let
+    url :: String
+    url = Printf.printf format anOwner aRepo aTag
   initialRequest <- Client.parseRequest url
   let request =
         initialRequest
         {Client.requestHeaders = [authorizationHeader aToken, userAgentHeader]}
   response <- Client.httpLbs request manager
   let body = Client.responseBody response
-  let json = Aeson.eitherDecode body
-  return json
+  return (Aeson.eitherDecode body)
 
 authorizationHeader :: String -> HTTP.Header
 authorizationHeader aToken =
@@ -147,10 +161,11 @@ uploadBody
   -> String
   -> IO (Client.Response BSL.ByteString)
 uploadBody manager template aToken body aName = do
-  let url =
-        Template.render
-          template
-          [("name", Template.WrappedValue (Template.Single aName))]
+  let
+    url :: String
+    url = Template.render
+      template
+      [("name", Template.WrappedValue (Template.Single aName))]
   initialRequest <- Client.parseRequest url
   let request =
         initialRequest
