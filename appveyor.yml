@@ -8,7 +8,7 @@ environment:
   STACK_ROOT: c:\s
 
 install:
-  - ps: curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.6.1/stack-1.6.1-windows-x86_64.zip
+  - ps: curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.6.5/stack-1.6.5-windows-x86_64.zip
   - 7z x stack.zip stack.exe
 build_script:
   - stack.exe setup
@@ -22,5 +22,5 @@ on_success:
       {
         cp "$(./stack.exe path --local-install-root)/bin/github-release.exe" github-release.exe
         7z a github-release.zip github-release.exe
-        ./github-release.exe upload --token $env:GITHUB_TOKEN --owner tfausak --repo github-release --tag $env:APPVEYOR_REPO_TAG_NAME --file github-release.zip --name github-release-$env:APPVEYOR_REPO_TAG_NAME-windows.zip
+        ./github-release.exe upload --token $env:GITHUB_TOKEN --owner tfausak --repo github-release --tag $env:APPVEYOR_REPO_TAG_NAME --file github-release.zip --name github-release-windows.zip
       }
