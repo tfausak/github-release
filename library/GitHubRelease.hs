@@ -1,7 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE ExplicitNamespaces  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module GitHubRelease
   ( Command(..)
@@ -18,25 +19,28 @@ module GitHubRelease
   , uploadBody
   ) where
 
-import Options.Generic (type (<?>))
+import           Options.Generic            (type (<?>))
 
-import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.HashMap.Strict as HashMap
-import qualified Data.Text as Text
-import qualified Data.Version as Version
-import qualified GHC.Generics as Generics
-import qualified Network.HTTP.Client as Client
-import qualified Network.HTTP.Client.TLS as TLS
-import qualified Network.HTTP.Types as HTTP
-import qualified Network.Mime as MIME
-import qualified Network.URI.Template as Template
+import           Data.Aeson                 (object, (.=))
+import qualified Data.Aeson                 as Aeson
+import qualified Data.ByteString.Char8      as BS8
+import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.HashMap.Strict        as HashMap
+import           Data.Maybe                 (maybe)
+import           Data.Monoid                ((<>))
+import qualified Data.Text                  as Text
+import qualified Data.Version               as Version
+import qualified GHC.Generics               as Generics
+import qualified Network.HTTP.Client        as Client
+import qualified Network.HTTP.Client.TLS    as TLS
+import qualified Network.HTTP.Types         as HTTP
+import qualified Network.Mime               as MIME
+import qualified Network.URI.Template       as Template
 import qualified Network.URI.Template.Types as Template
-import qualified Options.Generic as Options
-import qualified Paths_github_release as This
-import qualified System.IO as IO
-import qualified Text.Printf as Printf
+import qualified Options.Generic            as Options
+import qualified Paths_github_release       as This
+import qualified System.IO                  as IO
+import qualified Text.Printf                as Printf
 
 data Command
   = Upload { file :: FilePath <?> "The path to the local file to upload."
@@ -45,6 +49,15 @@ data Command
           ,  repo :: String <?> "The GitHub repository name."
           ,  tag :: String <?> "The tag name."
           ,  token :: String <?> "Your OAuth2 token."}
+  | Release { title :: String <?> "The name of the release"
+          ,  owner :: Maybe String <?> "The GitHub owner, either a user or organization."
+          ,  repo :: String <?> "The GitHub repository name."
+          ,  tag :: String <?> "The tag name."
+          ,  description :: Maybe String <?> "Release description."
+          ,  token :: String <?> "Your OAuth2 token."
+          ,  preRelease :: Maybe Bool <?> "Indicates if this is a pre-release."
+          ,  draft :: Maybe Bool <?> "Indicates if this is a draft."
+          }
   | Version
   deriving (Generics.Generic, Show)
 
@@ -66,6 +79,16 @@ runCommand command =
         (Options.unHelpful aTag)
         (Options.unHelpful aFile)
         (Options.unHelpful aName)
+    Release aTitle anOwner aRepo aTag aDescription aToken aPreRelease aDraft ->
+      release
+        (Options.unHelpful aToken)
+        (Options.unHelpful anOwner)
+        (Options.unHelpful aRepo)
+        (Options.unHelpful aTag)
+        (Options.unHelpful aTitle)
+        (Options.unHelpful aDescription)
+        (Options.unHelpful aPreRelease)
+        (Options.unHelpful aDraft)
     Version -> putStrLn versionString
 
 upload :: String -> Maybe String -> String -> String -> FilePath -> String -> IO ()
@@ -75,7 +98,22 @@ upload aToken anOwner aRepo aTag aFile aName = do
   response <- uploadFile manager uploadUrl aToken aFile aName
   case HTTP.statusCode (Client.responseStatus response) of
     201 -> pure ()
-    _ -> fail "Failed to upload file to release!"
+    _   -> fail "Failed to upload file to release!"
+
+release :: String -> Maybe String -> String -> String -> String -> Maybe String -> Maybe Bool -> Maybe Bool -> IO ()
+release aToken anOwner aRepo aTag aTitle aDescription aPreRelease aDraft = do
+  manager <- Client.newManager TLS.tlsManagerSettings
+  (owner', repo') <- getOwnerRepo anOwner aRepo
+  let format = "https://api.github.com/repos/%s/%s/releases"
+  let
+    url :: String
+    url = Printf.printf format owner' repo'
+  response <- mkRelease manager url aToken aTag aTitle aDescription aPreRelease aDraft
+  let body = Aeson.eitherDecode $ Client.responseBody response :: Either String Aeson.Object
+  case HTTP.statusCode (Client.responseStatus response) of
+    201 -> pure ()
+    422 -> IO.hPutStrLn IO.stderr "Release aready exists. Ignoring."
+    _   -> fail $ "Failed to create release! Reason: " <> (show body)
 
 getUploadUrl
   :: Client.Manager
@@ -89,15 +127,28 @@ getUploadUrl manager aToken anOwner aRepo aTag = do
     result <- getTag manager aToken anOwner aRepo aTag
     case result of
       Left problem -> fail ("Failed to get tag JSON: " ++ show problem)
-      Right json -> pure json
+      Right json   -> pure json
   text <- case HashMap.lookup (Text.pack "upload_url") json of
     Just (Aeson.String text) -> pure text
     _ -> fail ("Failed to get upload URL: " ++ show json)
   let uploadUrl = Text.unpack text
   template <- case Template.parseTemplate uploadUrl of
-    Left problem -> fail ("Failed to parse URL template: " ++ show problem)
+    Left problem   -> fail ("Failed to parse URL template: " ++ show problem)
     Right template -> pure template
   pure template
+
+getOwnerRepo :: Maybe String -> String -> IO ((String, String))
+getOwnerRepo rawOwner rawRepo = do
+  (anOwner, aRepo) <- case break (== '/') rawRepo of
+    (aRepo, "") -> case rawOwner of
+      Nothing      -> fail "Missing required option --owner."
+      Just anOwner -> pure (anOwner, aRepo)
+    (anOwner, aRepo) -> do
+      case rawOwner of
+        Nothing -> pure ()
+        Just _  -> IO.hPutStrLn IO.stderr "Ignoring --owner option."
+      pure (anOwner, drop 1 aRepo)
+  return (anOwner, aRepo)
 
 getTag
   :: Client.Manager
@@ -107,15 +158,7 @@ getTag
   -> String
   -> IO (Either String Aeson.Object)
 getTag manager aToken rawOwner rawRepo aTag = do
-  (anOwner, aRepo) <- case break (== '/') rawRepo of
-    (aRepo, "") -> case rawOwner of
-      Nothing -> fail "Missing required option --owner."
-      Just anOwner -> pure (anOwner, aRepo)
-    (anOwner, aRepo) -> do
-      case rawOwner of
-        Nothing -> pure ()
-        Just _ -> IO.hPutStrLn IO.stderr "Ignoring --owner option."
-      pure (anOwner, drop 1 aRepo)
+  (anOwner, aRepo) <- getOwnerRepo rawOwner rawRepo
   let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
   let
     url :: String
@@ -174,6 +217,36 @@ uploadBody manager template aToken body aName = do
         , Client.requestHeaders =
             [ authorizationHeader aToken
             , (HTTP.hContentType, MIME.defaultMimeLookup (Text.pack aName))
+            , userAgentHeader
+            ]
+        }
+  Client.httpLbs request manager
+
+mkRelease
+  :: Client.Manager
+  -> String
+  -> String
+  -> String
+  -> String
+  -> Maybe String
+  -> Maybe Bool
+  -> Maybe Bool
+  -> IO (Client.Response BSL.ByteString)
+mkRelease manager url aToken aTag aTitle aDescription aPreRelease aDraft = do
+  initialRequest <- Client.parseRequest url
+  let requestObject = object
+            [ Text.pack "tag_name" .= aTag
+            , Text.pack "name"  .= aTitle
+            , Text.pack "body" .= maybe "" id aDescription
+            , Text.pack "prerelease" .= maybe False id aPreRelease
+            , Text.pack "draft" .= maybe False id aDraft
+            ]
+  let request =
+        initialRequest
+        { Client.method = BS8.pack "POST"
+        , Client.requestBody = Client.RequestBodyLBS $ Aeson.encode requestObject
+        , Client.requestHeaders =
+            [ authorizationHeader aToken
             , userAgentHeader
             ]
         }
