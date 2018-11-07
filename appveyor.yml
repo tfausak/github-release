@@ -9,7 +9,7 @@ environment:
   TMP: c:/tmp # https://github.com/haskell/cabal/issues/5386
 
 install:
-  - ps: curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.6.5/stack-1.6.5-windows-x86_64.zip
+  - ps: curl -OutFile stack.zip -Uri https://github.com/commercialhaskell/stack/releases/download/v1.9.1/stack-1.9.1-windows-x86_64.zip
   - 7z x stack.zip stack.exe
 build_script:
   - stack.exe setup
