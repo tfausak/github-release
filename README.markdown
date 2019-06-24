@@ -18,7 +18,7 @@ github-release upload \
   --token '...' \
   --owner 'someone' \
   --repo 'something' \
-  --tag '1.2.3' \
+  --tag 'v1.2.3' \
   --file 'path/to/example.tgz' \
   --name 'example-1.2.3.tgz'
 ```
