@@ -26,8 +26,6 @@ import qualified Data.Aeson                 as Aeson
 import qualified Data.ByteString.Char8      as BS8
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.HashMap.Strict        as HashMap
-import           Data.Maybe                 (maybe)
-import           Data.Monoid                ((<>))
 import qualified Data.Text                  as Text
 import qualified Data.Version               as Version
 import qualified GHC.Generics               as Generics
