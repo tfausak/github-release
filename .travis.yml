@@ -1,70 +1,48 @@
-sudo: false
-os:
-  - linux
-  - osx
+os: linux
+dist: bionic
 language: generic
 addons:
   apt:
     packages:
       - libgmp-dev
+env:
+  global:
+    - HACKAGE_USERNAME=fozworth
+    # HACKAGE_PASSWORD
+    - secure: pvj7lG56MmkhqdfI7CogwejCc5EtoVpyHTKGqzz7kaLiH6QpejQm5VWV8X+FkTE4LMFtQl6huTXU0tG2G9sCTRXsdE7Cx8Vb2chvC0vdWFHDwrO1N1g5apmU+KqY+BaOFp8nMwYSp5rtr0uPJuxlM8sZJjsWi5dyXsA/EHx8rjAi6s9E82W0qG0m+6jcWHI506n1YjC0DDZaf1cvVUpor6vEnV8A/DP7oJnDfEUx6sBmMAZIKiDY80yXqG703oAtLdShZhfkPdiW0G/5MUJrHcNpOmiDguFFmtP61hSr4oAiiaauXRgW893CceGQjGBsK+056R247A0wAK5ojog2oYqMWbT9MOL5V3iNMltm7wyS/XqOEblax812rNdIWlEw/kZhefBezfLXZ3GFNZoMLRcLzGfE+ETXoumpRMyo6pUKZvtvRhjfbhDLOdSG0d/9p/M5hMeRnK/1vsFiDLR38us43ojN4wFsS2rfkQ9J8j7wBpOqHBe5EnhtD/Fp9+dewax0eJqiiVapoSjiBaB96iMkbBffDaAANb0Dm+rhBv0x/hwDt/IfN5UXiUrOOAH0JjzMyLzulXx9NBrt+X51a8xBQJNyX+TCqT7t0/roC2NXlWRemQhrRUSJq2dUzNsXmtp3HHwj5B3ujPyWFZmt12/i6R00ocyTvzqptwXkwSA=
+
 cache:
   directories:
     - $HOME/.local/bin
     - $HOME/.stack
-env:
-  global:
-    - HACKAGE_USERNAME=fozworth
-    - secure: pvj7lG56MmkhqdfI7CogwejCc5EtoVpyHTKGqzz7kaLiH6QpejQm5VWV8X+FkTE4LMFtQl6huTXU0tG2G9sCTRXsdE7Cx8Vb2chvC0vdWFHDwrO1N1g5apmU+KqY+BaOFp8nMwYSp5rtr0uPJuxlM8sZJjsWi5dyXsA/EHx8rjAi6s9E82W0qG0m+6jcWHI506n1YjC0DDZaf1cvVUpor6vEnV8A/DP7oJnDfEUx6sBmMAZIKiDY80yXqG703oAtLdShZhfkPdiW0G/5MUJrHcNpOmiDguFFmtP61hSr4oAiiaauXRgW893CceGQjGBsK+056R247A0wAK5ojog2oYqMWbT9MOL5V3iNMltm7wyS/XqOEblax812rNdIWlEw/kZhefBezfLXZ3GFNZoMLRcLzGfE+ETXoumpRMyo6pUKZvtvRhjfbhDLOdSG0d/9p/M5hMeRnK/1vsFiDLR38us43ojN4wFsS2rfkQ9J8j7wBpOqHBe5EnhtD/Fp9+dewax0eJqiiVapoSjiBaB96iMkbBffDaAANb0Dm+rhBv0x/hwDt/IfN5UXiUrOOAH0JjzMyLzulXx9NBrt+X51a8xBQJNyX+TCqT7t0/roC2NXlWRemQhrRUSJq2dUzNsXmtp3HHwj5B3ujPyWFZmt12/i6R00ocyTvzqptwXkwSA=
-    - secure: gSwwSx/qls6jVR8dlIQJMPZmtyPO2HAyOJKc/UgtqQTVXDEZMmgxg25Ws8/O8VEt5S2L+/Wlb7oJmnFOrPpDmuDUyzTXF3blleyMH2X4aOBUJUIFovZdA+YNCWD3DThPe6aJbdEHYt+Gbg+6p9HhCzy1AS9ohpFd4NQ78utModhfnBYHAWpaqJgqHU5Wjq3sbADpSJaVNPfBygpc2FCBJiHi4TSAU7skidwqWWlZnN/TWtejHG7tWFjOtUS4kyDoMU9t8LEhfL0E6nLD+VsmRpH7cO/h7Ar/w1GjxMMIuP1lX5z6K6tZpVrhpf7OJS6MoHSSnXOND3+lvEgPekmm9IZaT6PLKe2c6lvSG1hoZc4qsZPRhhq295ii8CZiu8yYMLVreqF3vJV1OosLZ4U2Iz3fMan2/SkmNlufk1YUBG2YWNO3oxdeBpr2ykbfgtAc7ixY+OCcRHCA2pAglTlwD6Rj3Rymxsd+jNZvPlklqMgBhfk6pYAbIpJ6xBRwB3lMZy0+BMMkUMq5Ere9fsb2+KI7BHbPU5hIuiM3OdJ2gmF5qmeHr7pjBf8fwxAZVMOnJUZdEcfk4jSzA/ufQ/qainuU0dGtJuDhYBFc6LLoNN8E35nUcceNgsaWloZeYvQQ2m3pSQIxInmC+dsCVO2NyBYkAMcnARx59X3TbtC01jk=
+
 before_install:
   - |
-    if test ! -f "$HOME/.local/bin/stack"
+    if ! test -f "$HOME/.local/bin/stack"
     then
-      VERSION=1.9.1
-      URL="https://github.com/commercialhaskell/stack/releases/download/v$VERSION/stack-$VERSION-$TRAVIS_OS_NAME-x86_64.tar.gz"
-      cd /tmp
-      curl --location "$URL" > stack.tar.gz
+      VERSION=2.3.0.1
+      URL="https://github.com/commercialhaskell/stack/releases/download/v$VERSION/stack-$VERSION-linux-x86_64-static.tar.gz"
+      curl --location --output stack.tar.gz "$URL"
       gunzip stack.tar.gz
       tar --extract --file stack.tar --strip-components 1
       mkdir --parents "$HOME/.local/bin"
       mv stack "$HOME/.local/bin"
-      cd -
+      rm stack.tar
     fi
   - stack --version
+
 install:
   - stack setup
   - stack build --only-dependencies --test
+
 script:
-  - stack build --pedantic --test
+  - stack build --no-run-tests --pedantic --test
+  - stack build --test
   - stack sdist
-after_success:
-  - mkdir -p deploy
-  - cp -v "$(stack path --dist-dir)/github-release-$TRAVIS_TAG.tar.gz" deploy/github-release.tgz
-  - gzip --best --to-stdout "$(stack exec which github-release)" > deploy/github-release.gz
-  - mkdir -p "$HOME/.stack/upload"
-  - >-
-    echo "{
-    \"username\": \"$HACKAGE_USERNAME\",
-    \"password\": \"$HACKAGE_PASSWORD\"
-    }" > "$HOME/.stack/upload/credentials.json"
+
 deploy:
-  - skip_cleanup: true
-    on: { tags: true }
-    provider: releases
-    api_key: { secure: ATxFd0tVnniaapHo072jREC0sCmtTJk3kjps9+ECHg6MSsnxBCXhyHERR7ltzkjR8bgPY3hRcsOqhoHMPCEtYS9LSHY+NJ+NymwLFhxOH/eSa0zQDh/geK0NMCmMoQ5VRSi5Zr+Y6QaLdPx+SUOpAiw9zs3th469XswnVMYOMM0C+R6KKWnhouW+AhSK3byyWAavhJvmSFQHL/KDxf2RdFIVs0Nz8cawKbExFMpjRafS9LoqEkXhs0O0m7hxZfTPEbfL4qXAPBayqcKcVx9ukko+3b1fGRyV0mlq2Jz+jtVcVid4ByoO/vf1yMDqnivCE5/gzDHc5Bfnx8nL9qdpsts3f01VnExi7b7MVuFdjRNb6aT9UQb7UyFe2nRAfcAmdgkMOjbeH+UfOuBteBTdDmJWs69cifDk1rg/BlLwlkkuRYYrRpCNSVKDCMkm+WQvS9yf00lNvtla9bI5BD6H21Oj34SgkN8tDibKu/6Vb1YRtYPIfpeX+ieCyGP3KtBj/3Xbt2kvuRHxir/SvVjKqlexLlisDOWq1w+y51GHvdA/vBCHcUy4s9gqCmCSBZG6nTRTht5M97tIq6daBziXrdirTyym1wDj5uzJFHsikkr3w3f7doTvqyi4AYNHKdB2dQfFWOqiHFWhx2HdOSp638ZMRg57d8l5+BLa7rlSMdI= }
-    file: deploy/github-release.tgz
-  - skip_cleanup: true
-    on: { tags: true }
-    provider: script
-    script: >-
-      stack exec -- github-release upload
-      --token "$GITHUB_TOKEN"
-      --owner tfausak
-      --repo github-release
-      --tag "$TRAVIS_TAG"
-      --file deploy/github-release.gz
-      --name "github-release-$TRAVIS_OS_NAME.gz"
-  - skip_cleanup: true
-    on: { tags: true }
-    provider: script
-    script: stack upload --no-signature .
+  provider: script
+  on:
+    tags: true
+  skip_cleanup: true
+  script: yes | stack upload .
