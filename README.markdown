@@ -6,10 +6,6 @@
 GitHub Release is a command-line utility for uploading files to GitHub
 releases.
 
-The recommended way to get GitHub Release is to download [the latest release][]
-for your operating system. These releases are, of course, added with GitHub
-Release itself.
-
 Once you've got it, run it like so:
 
 ``` sh
