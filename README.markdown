@@ -1,7 +1,7 @@
 # [GitHub Release][]
-
-[![Version badge][]][version]
-[![Build badge][]][build]
+[![Travis CI](https://travis-ci.org/tfausak/github-release.svg?branch=master)](https://travis-ci.org/tfausak/github-release)
+[![Hackage](https://img.shields.io/hackage/v/github-release)](https://hackage.haskell.org/package/github-release)
+[![Stackage](https://www.stackage.org/package/github-release/badge/nightly?label=stackage)](https://www.stackage.org/package/github-release)
 
 GitHub Release is a command-line utility for uploading files to GitHub
 releases.
@@ -48,10 +48,6 @@ GitHubRelease.upload
 Inspired by <https://github.com/aktau/github-release>.
 
 [GitHub Release]: https://github.com/tfausak/github-release
-[Version badge]: https://www.stackage.org/package/github-release/badge/nightly?label=version
-[version]: https://www.stackage.org/package/github-release
-[Build badge]: https://travis-ci.org/tfausak/github-release.svg
-[build]: https://travis-ci.org/tfausak/github-release
 [the latest release]: https://github.com/tfausak/github-release/releases/latest
 [personal access tokens]: https://github.com/settings/tokens
 [Stack]: http://docs.haskellstack.org/en/stable/README/
