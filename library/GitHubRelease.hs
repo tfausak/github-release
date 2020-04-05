@@ -21,6 +21,7 @@ module GitHubRelease
 
 import           Options.Generic            (type (<?>))
 
+import qualified Burrito
 import           Data.Aeson                 (object, (.=))
 import qualified Data.Aeson                 as Aeson
 import qualified Data.ByteString.Char8      as BS8
@@ -33,8 +34,6 @@ import qualified Network.HTTP.Client        as Client
 import qualified Network.HTTP.Client.TLS    as TLS
 import qualified Network.HTTP.Types         as HTTP
 import qualified Network.Mime               as MIME
-import qualified Network.URI.Template       as Template
-import qualified Network.URI.Template.Types as Template
 import qualified Options.Generic            as Options
 import qualified Paths_github_release       as This
 import qualified System.IO                  as IO
@@ -119,7 +118,7 @@ getUploadUrl
   -> Maybe String
   -> String
   -> String
-  -> IO Template.UriTemplate
+  -> IO Burrito.Template
 getUploadUrl manager aToken anOwner aRepo aTag = do
   json <- do
     result <- getTag manager aToken anOwner aRepo aTag
@@ -130,9 +129,9 @@ getUploadUrl manager aToken anOwner aRepo aTag = do
     Just (Aeson.String text) -> pure text
     _ -> fail ("Failed to get upload URL: " ++ show json)
   let uploadUrl = Text.unpack text
-  template <- case Template.parseTemplate uploadUrl of
-    Left problem   -> fail ("Failed to parse URL template: " ++ show problem)
-    Right template -> pure template
+  template <- case Burrito.parse uploadUrl of
+    Nothing        -> fail ("Failed to parse URL template: " ++ show uploadUrl)
+    Just template  -> pure template
   pure template
 
 getOwnerRepo :: Maybe String -> String -> IO ((String, String))
@@ -184,7 +183,7 @@ versionString = Version.showVersion This.version
 
 uploadFile
   :: Client.Manager
-  -> Template.UriTemplate
+  -> Burrito.Template
   -> String
   -> FilePath
   -> String
@@ -196,7 +195,7 @@ uploadFile manager template aToken aFile aName = do
 
 uploadBody
   :: Client.Manager
-  -> Template.UriTemplate
+  -> Burrito.Template
   -> String
   -> Client.RequestBody
   -> String
@@ -204,9 +203,9 @@ uploadBody
 uploadBody manager template aToken body aName = do
   let
     url :: String
-    url = Template.render
+    url = Burrito.expand
+      [("name", Burrito.stringValue aName)]
       template
-      [("name", Template.WrappedValue (Template.Single aName))]
   initialRequest <- Client.parseRequest url
   let request =
         initialRequest
