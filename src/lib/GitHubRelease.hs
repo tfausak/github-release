@@ -56,6 +56,13 @@ data Command
           ,  preRelease :: Maybe Bool <?> "Indicates if this is a pre-release."
           ,  draft :: Maybe Bool <?> "Indicates if this is a draft."
           }
+  | Delete
+    { name :: String <?> "The name to give the file on the release."
+    , owner :: Maybe String <?> "The GitHub owner, either a user or organization."
+    , repo :: String <?> "The GitHub repository name."
+    , tag :: String <?> "The tag name."
+    , token :: Maybe String <?> "Your OAuth2 token."
+    }
   | Version
   deriving (Generics.Generic, Show)
 
@@ -91,6 +98,15 @@ runCommand command =
         (Options.unHelpful aDescription)
         (Options.unHelpful aPreRelease)
         (Options.unHelpful aDraft)
+    Delete aName anOwner aRepo aTag helpfulToken -> do
+      aToken <- maybe (Environment.getEnv "GITHUB_TOKEN") pure
+        $ Options.unHelpful helpfulToken
+      delete
+        (Options.unHelpful aName)
+        (Options.unHelpful anOwner)
+        (Options.unHelpful aRepo)
+        (Options.unHelpful aTag)
+        aToken
     Version -> putStrLn versionString
 
 upload :: String -> Maybe String -> String -> String -> FilePath -> String -> IO ()
@@ -117,6 +133,45 @@ release aToken anOwner aRepo aTag aTitle aDescription aPreRelease aDraft = do
     422 -> IO.hPutStrLn IO.stderr "Release aready exists. Ignoring."
     _   -> fail $ "Failed to create release! Reason: " <> (show body)
 
+delete :: String -> Maybe String -> String -> String -> String -> IO ()
+delete aName rawOwner rawRepo aTag aToken = do
+  manager <- Client.newManager TLS.tlsManagerSettings
+  (anOwner, aRepo) <- getOwnerRepo rawOwner rawRepo
+  ghRelease <- do
+    result <- getTag manager aToken anOwner aRepo aTag
+    case result of
+      Left problem -> fail $ "Failed to get tag JSON: " ++ show problem
+      Right json -> pure json
+  case filter ((== aName) . ghAssetName) $ ghReleaseAssets ghRelease of
+    [] -> fail $ "Failed to find asset on release."
+    ghAsset : _ -> do
+      request <- Client.parseRequest $ ghAssetUrl ghAsset
+      response <- Client.httpLbs request
+        { Client.method = HTTP.methodDelete
+        , Client.requestHeaders = [authorizationHeader aToken, userAgentHeader]
+        } manager
+      case HTTP.statusCode $ Client.responseStatus response of
+        204 -> pure ()
+        _ -> fail $ "Failed to delete asset from release! " <> show response
+
+newtype GHRelease = GHRelease
+  { ghReleaseAssets :: [GHAsset]
+  } deriving (Eq, Show)
+
+instance Aeson.FromJSON GHRelease where
+  parseJSON = Aeson.withObject "GHRelease" $ \ obj -> GHRelease
+    <$> obj Aeson..: Text.pack "assets"
+
+data GHAsset = GHAsset
+  { ghAssetName :: String
+  , ghAssetUrl :: String
+  } deriving (Eq, Show)
+
+instance Aeson.FromJSON GHAsset where
+  parseJSON = Aeson.withObject "GHAsset" $ \ obj -> GHAsset
+    <$> obj Aeson..: Text.pack "name"
+    <*> obj Aeson..: Text.pack "url"
+
 getUploadUrl
   :: Client.Manager
   -> String
@@ -124,8 +179,9 @@ getUploadUrl
   -> String
   -> String
   -> IO Burrito.Template
-getUploadUrl manager aToken anOwner aRepo aTag = do
+getUploadUrl manager aToken rawOwner rawRepo aTag = do
   json <- do
+    (anOwner, aRepo) <- getOwnerRepo rawOwner rawRepo
     result <- getTag manager aToken anOwner aRepo aTag
     case result of
       Left problem -> fail ("Failed to get tag JSON: " ++ show problem)
@@ -153,14 +209,14 @@ getOwnerRepo rawOwner rawRepo = do
   return (anOwner, aRepo)
 
 getTag
-  :: Client.Manager
+  :: Aeson.FromJSON a
+  => Client.Manager
   -> String
-  -> Maybe String
   -> String
   -> String
-  -> IO (Either String Aeson.Object)
-getTag manager aToken rawOwner rawRepo aTag = do
-  (anOwner, aRepo) <- getOwnerRepo rawOwner rawRepo
+  -> String
+  -> IO (Either String a)
+getTag manager aToken anOwner aRepo aTag = do
   let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
   let
     url :: String
