@@ -36,6 +36,7 @@ import qualified Network.HTTP.Types         as HTTP
 import qualified Network.Mime               as MIME
 import qualified Options.Generic            as Options
 import qualified Paths_github_release       as This
+import qualified System.Environment         as Environment
 import qualified System.IO                  as IO
 import qualified Text.Printf                as Printf
 
@@ -45,13 +46,13 @@ data Command
           ,  owner :: Maybe String <?> "The GitHub owner, either a user or organization."
           ,  repo :: String <?> "The GitHub repository name."
           ,  tag :: String <?> "The tag name."
-          ,  token :: String <?> "Your OAuth2 token."}
+          ,  token :: Maybe String <?> "Your OAuth2 token."}
   | Release { title :: String <?> "The name of the release"
           ,  owner :: Maybe String <?> "The GitHub owner, either a user or organization."
           ,  repo :: String <?> "The GitHub repository name."
           ,  tag :: String <?> "The tag name."
           ,  description :: Maybe String <?> "Release description."
-          ,  token :: String <?> "Your OAuth2 token."
+          ,  token :: Maybe String <?> "Your OAuth2 token."
           ,  preRelease :: Maybe Bool <?> "Indicates if this is a pre-release."
           ,  draft :: Maybe Bool <?> "Indicates if this is a draft."
           }
@@ -68,17 +69,21 @@ main = do
 runCommand :: Command -> IO ()
 runCommand command =
   case command of
-    Upload aFile aName anOwner aRepo aTag aToken ->
+    Upload aFile aName anOwner aRepo aTag helpfulToken -> do
+      aToken <- maybe (Environment.getEnv "GITHUB_TOKEN") pure
+        $ Options.unHelpful helpfulToken
       upload
-        (Options.unHelpful aToken)
+        aToken
         (Options.unHelpful anOwner)
         (Options.unHelpful aRepo)
         (Options.unHelpful aTag)
         (Options.unHelpful aFile)
         (Options.unHelpful aName)
-    Release aTitle anOwner aRepo aTag aDescription aToken aPreRelease aDraft ->
+    Release aTitle anOwner aRepo aTag aDescription helpfulToken aPreRelease aDraft -> do
+      aToken <- maybe (Environment.getEnv "GITHUB_TOKEN") pure
+        $ Options.unHelpful helpfulToken
       release
-        (Options.unHelpful aToken)
+        aToken
         (Options.unHelpful anOwner)
         (Options.unHelpful aRepo)
         (Options.unHelpful aTag)
