@@ -1,2 +1,1 @@
-resolver: lts-15.4
-extra-deps: [ burrito-1.2.0.0 ]
+resolver: lts-17.0

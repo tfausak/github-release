@@ -1,5 +1,6 @@
 # [GitHub Release][]
-[![Travis CI](https://travis-ci.org/tfausak/github-release.svg?branch=master)](https://travis-ci.org/tfausak/github-release)
+
+[![CI](https://github.com/tfausak/github-release/workflows/CI/badge.svg)](https://github.com/tfausak/github-release/actions/new)
 [![Hackage](https://img.shields.io/hackage/v/github-release)](https://hackage.haskell.org/package/github-release)
 [![Stackage](https://www.stackage.org/package/github-release/badge/nightly?label=stackage)](https://www.stackage.org/package/github-release)
 
