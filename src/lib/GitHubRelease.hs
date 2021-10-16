@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ExplicitNamespaces  #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -124,7 +125,7 @@ release :: String -> Maybe String -> String -> String -> String -> Maybe String 
 release aToken anOwner aRepo aTag aTitle aDescription aPreRelease aDraft = do
   manager <- Client.newManager TLS.tlsManagerSettings
   (owner', repo') <- getOwnerRepo anOwner aRepo
-  let format = "https://api.github.com/repos/%s/%s/releases"
+  let format = "https://api.github.com/repos/%s/%s/releases" :: String
   let
     url :: String
     url = Printf.printf format owner' repo'
@@ -162,7 +163,7 @@ newtype GHRelease = GHRelease
 
 instance Aeson.FromJSON GHRelease where
   parseJSON = Aeson.withObject "GHRelease" $ \ obj -> GHRelease
-    <$> obj Aeson..: Text.pack "assets"
+    <$> obj Aeson..: "assets"
 
 data GHAsset = GHAsset
   { ghAssetName :: String
@@ -171,8 +172,8 @@ data GHAsset = GHAsset
 
 instance Aeson.FromJSON GHAsset where
   parseJSON = Aeson.withObject "GHAsset" $ \ obj -> GHAsset
-    <$> obj Aeson..: Text.pack "name"
-    <*> obj Aeson..: Text.pack "url"
+    <$> obj Aeson..: "name"
+    <*> obj Aeson..: "url"
 
 getUploadUrl
   :: Client.Manager
@@ -219,7 +220,7 @@ getTag
   -> String
   -> IO (Either String a)
 getTag manager aToken anOwner aRepo aTag = do
-  let format = "https://api.github.com/repos/%s/%s/releases/tags/%s"
+  let format = "https://api.github.com/repos/%s/%s/releases/tags/%s" :: String
   let
     url :: String
     url = Printf.printf format anOwner aRepo aTag
@@ -239,7 +240,7 @@ userAgentHeader :: HTTP.Header
 userAgentHeader = (HTTP.hUserAgent, BS8.pack userAgent)
 
 userAgent :: String
-userAgent = Printf.printf "%s/%s-%s" "tfausak" "github-release" versionString
+userAgent = Printf.printf "%s/%s-%s" ("tfausak" :: String) ("github-release" :: String) versionString
 
 versionString :: String
 versionString = Version.showVersion This.version
@@ -295,11 +296,11 @@ mkRelease
 mkRelease manager url aToken aTag aTitle aDescription aPreRelease aDraft = do
   initialRequest <- Client.parseRequest url
   let requestObject = object
-            [ Text.pack "tag_name" .= aTag
-            , Text.pack "name"  .= aTitle
-            , Text.pack "body" .= maybe "" id aDescription
-            , Text.pack "prerelease" .= maybe False id aPreRelease
-            , Text.pack "draft" .= maybe False id aDraft
+            [ "tag_name" .= aTag
+            , "name"  .= aTitle
+            , "body" .= maybe "" id aDescription
+            , "prerelease" .= maybe False id aPreRelease
+            , "draft" .= maybe False id aDraft
             ]
   let request =
         initialRequest
