@@ -14,12 +14,13 @@ jobs:
     strategy:
       matrix:
         include:
+          - { platform: ubuntu, ghc: 9.2.1 }
+          - { platform: macos, ghc: 9.2.1 }
+          - { platform: windows, ghc: 9.2.1, extension: .exe }
           - { platform: ubuntu, ghc: 9.0.2 }
           - { platform: ubuntu, ghc: 8.10.7 }
-          - { platform: ubuntu, ghc: 8.8.4 }
-          - { platform: macos, ghc: 8.10.7 }
-          - { platform: windows, ghc: 8.10.7, extension: .exe }
     runs-on: ${{ matrix.platform }}-latest
+    name: GHC ${{ matrix.ghc }} on ${{ matrix.platform }}
     steps:
 
       - uses: actions/checkout@v2
@@ -35,15 +36,12 @@ jobs:
         uses: haskell/actions/setup@v1
         with:
           ghc-version: ${{ matrix.ghc }}
-          cabal-version: 3.6.2.0
 
-      - run: cabal configure --jobs
+      - run: cabal configure --flags pedantic --jobs
 
       - run: cabal freeze
 
       - run: cat cabal.project.freeze
-
-      - run: cp cabal.project.freeze artifact/${{ matrix.platform }}
 
       - uses: actions/cache@v2
         with:
@@ -62,20 +60,17 @@ jobs:
       - uses: svenstaro/upx-action@v2
         with:
           file: ${{ steps.artifact.outputs.directory }}/github-release${{ matrix.extension }}
-          args: --best
 
       - uses: actions/upload-artifact@v2
         with:
-          name: github-release-${{ github.sha }}
           path: artifact
+          name: github-release-${{ github.sha }}
 
   release:
     needs: ci
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
-
-      - uses: actions/checkout@v2
 
       - uses: actions/download-artifact@v2
         with:
@@ -88,7 +83,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: github-release-${{ github.event.release.tag_name }}-ubuntu
-          asset_path: artifact/ubuntu/8.10.7/github-release
+          asset_path: artifact/ubuntu/9.2.1/github-release
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -97,7 +92,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: github-release-${{ github.event.release.tag_name }}-macos
-          asset_path: artifact/macos/8.10.7/github-release
+          asset_path: artifact/macos/9.2.1/github-release
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -106,7 +101,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: github-release-${{ github.event.release.tag_name }}-windows.exe
-          asset_path: artifact/windows/8.10.7/github-release.exe
+          asset_path: artifact/windows/9.2.1/github-release.exe
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -115,7 +110,7 @@ jobs:
         with:
           asset_content_type: application/gzip
           asset_name: github-release-${{ github.event.release.tag_name }}.tar.gz
-          asset_path: artifact/ubuntu/8.10.7/github-release-${{ github.event.release.tag_name }}.tar.gz
+          asset_path: artifact/ubuntu/9.2.1/github-release-${{ github.event.release.tag_name }}.tar.gz
           upload_url: ${{ github.event.release.upload_url }}
 
-      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu/8.10.7/github-release-${{ github.event.release.tag_name }}.tar.gz
+      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu/9.2.1/github-release-${{ github.event.release.tag_name }}.tar.gz
