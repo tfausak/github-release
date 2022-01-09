@@ -10,37 +10,112 @@ on:
     types:
       - created
 jobs:
-  build:
+  ci:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-18.04, ghc: 9.0.1, cabal: 3.4.0.0 }
-          - { os: ubuntu-18.04, ghc: 8.10.3, cabal: 3.2.0.0 }
-          - { os: macos-10.15, ghc: 8.10.3, cabal: 3.2.0.0 }
-          - { os: windows-2019, ghc: 8.10.3, cabal: 3.2.0.0 }
-          - { os: ubuntu-18.04, ghc: 8.8.4, cabal: 3.0.0.0 }
-    runs-on: ${{ matrix.os }}
+          - { platform: ubuntu, ghc: 9.0.2 }
+          - { platform: ubuntu, ghc: 8.10.7 }
+          - { platform: ubuntu, ghc: 8.8.4 }
+          - { platform: macos, ghc: 8.10.7 }
+          - { platform: windows, ghc: 8.10.7, extension: .exe }
+    runs-on: ${{ matrix.platform }}-latest
     steps:
+
       - uses: actions/checkout@v2
+
+      - id: artifact
+        run: |
+          mkdir artifact
+          mkdir artifact/${{ matrix.platform }}
+          mkdir artifact/${{ matrix.platform }}/${{ matrix.ghc }}
+          echo '::set-output name=directory::artifact/${{ matrix.platform }}/${{ matrix.ghc }}'
+
       - id: setup-haskell
         uses: haskell/actions/setup@v1
         with:
           ghc-version: ${{ matrix.ghc }}
-          cabal-version: ${{ matrix.cabal }}
-      - run: cabal freeze && cat cabal.project.freeze
+          cabal-version: 3.6.2.0
+
+      - run: cabal configure --jobs
+
+      - run: cabal freeze
+
+      - run: cat cabal.project.freeze
+
+      - run: cp cabal.project.freeze artifact/${{ matrix.platform }}
+
       - uses: actions/cache@v2
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          key: ${{ matrix.os }}-${{ matrix.ghc }}-${{ matrix.cabal }}-${{ hashFiles('cabal.project.freeze') }}
-          restore-keys: |
-            ${{ matrix.os }}-${{ matrix.ghc }}-${{ matrix.cabal }}-
-            ${{ matrix.os }}-${{ matrix.ghc }}-
-      - run: cabal test --test-show-details direct
-      - run: cabal sdist
+          key: ${{ matrix.platform }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: ${{ matrix.platform }}-${{ matrix.ghc }}-
+
+      - run: cabal build
+
+      - run: cabal install --install-method copy --installdir ${{ steps.artifact.outputs.directory }} .
+
+      - run: cabal check
+
+      - run: cabal sdist --output-dir ${{ steps.artifact.outputs.directory }}
+
+      - uses: svenstaro/upx-action@v2
+        with:
+          file: ${{ steps.artifact.outputs.directory }}/github-release${{ matrix.extension }}
+          args: --best
+
       - uses: actions/upload-artifact@v2
         with:
-          path: dist-newstyle/sdist/github-release-*.tar.gz
-          name: github-release-${{ github.sha }}.tar.gz
-      - run: cabal check
-      - if: github.event_name == 'release' && matrix.os == 'ubuntu-18.04' && matrix.ghc == '8.10.3'
-        run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' dist-newstyle/sdist/github-release-*.tar.gz
+          name: github-release-${{ github.sha }}
+          path: artifact
+
+  release:
+    needs: ci
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: github-release-${{ github.sha }}
+          path: artifact
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: github-release-${{ github.event.release.tag_name }}-ubuntu
+          asset_path: artifact/ubuntu/9.2.1/github-release
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: github-release-${{ github.event.release.tag_name }}-macos
+          asset_path: artifact/macos/9.2.1/github-release
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: github-release-${{ github.event.release.tag_name }}-windows.exe
+          asset_path: artifact/windows/9.2.1/github-release.exe
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/gzip
+          asset_name: github-release-${{ github.event.release.tag_name }}.tar.gz
+          asset_path: artifact/ubuntu/9.2.1/github-release-${{ github.event.release.tag_name }}.tar.gz
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu/9.2.1/github-release-${{ github.event.release.tag_name }}.tar.gz
