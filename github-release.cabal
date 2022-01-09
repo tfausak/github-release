@@ -1,7 +1,7 @@
 cabal-version: 2.0
 
 name: github-release
-version: 1.3.9
+version: 1.3.10
 
 synopsis: Upload files to GitHub releases.
 description: GitHub Release uploads files to GitHub releases.
