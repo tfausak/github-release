@@ -1,5 +1,6 @@
 module Main
-  ( module GitHubRelease
-  ) where
+  ( module GitHubRelease,
+  )
+where
 
 import GitHubRelease (main)

@@ -1,6 +1,0 @@
-{
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
-    "postCreateCommand": "cabal update"
-}
