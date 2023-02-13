@@ -240,7 +240,7 @@ getOwnerRepo rawOwner rawRepo = do
         Nothing -> pure ()
         Just _ -> IO.hPutStrLn IO.stderr "Ignoring --owner option."
       pure (anOwner, drop 1 aRepo)
-  return (anOwner, aRepo)
+  pure (anOwner, aRepo)
 
 getTag ::
   (Aeson.FromJSON a) =>
@@ -261,7 +261,7 @@ getTag manager aToken anOwner aRepo aTag = do
           }
   response <- Client.httpLbs request manager
   let body = Client.responseBody response
-  return (Aeson.eitherDecode body)
+  pure (Aeson.eitherDecode body)
 
 authorizationHeader :: String -> HTTP.Header
 authorizationHeader aToken =
