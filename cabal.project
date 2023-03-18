@@ -1,1 +1,7 @@
 packages: .
+
+allow-newer:
+  -- https://github.com/tfausak/burrito/pull/23
+  , burrito:base
+  , burrito:template-haskell
+  , burrito:transformers
