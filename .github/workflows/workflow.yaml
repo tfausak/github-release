@@ -173,28 +173,32 @@
           "uses": "svenstaro/upload-release-action@v2",
           "with": {
             "asset_name": "github-release-${{ github.event.release.tag_name }}-ubuntu",
-            "file": "artifact/ubuntu-9.4.4/github-release"
+            "file": "artifact/ubuntu-9.4.4/github-release",
+            "tag": "${{ github.event.release.tag_name }}"
           }
         },
         {
           "uses": "svenstaro/upload-release-action@v2",
           "with": {
             "asset_name": "github-release-${{ github.event.release.tag_name }}-macos",
-            "file": "artifact/macos-9.4.4/github-release"
+            "file": "artifact/macos-9.4.4/github-release",
+            "tag": "${{ github.event.release.tag_name }}"
           }
         },
         {
           "uses": "svenstaro/upload-release-action@v2",
           "with": {
             "asset_name": "github-release-${{ github.event.release.tag_name }}-windows.exe",
-            "file": "artifact/windows-9.4.4/github-release.exe"
+            "file": "artifact/windows-9.4.4/github-release.exe",
+            "tag": "${{ github.event.release.tag_name }}"
           }
         },
         {
           "uses": "svenstaro/upload-release-action@v2",
           "with": {
             "asset_name": "github-release-${{ github.event.release.tag_name }}.tar.gz",
-            "file": "artifact/ubuntu-9.4.4/github-release-${{ github.event.release.tag_name }}.tar.gz"
+            "file": "artifact/ubuntu-9.4.4/github-release-${{ github.event.release.tag_name }}.tar.gz",
+            "tag": "${{ github.event.release.tag_name }}"
           }
         },
         {
