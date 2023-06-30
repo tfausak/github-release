@@ -24,7 +24,7 @@ flag pedantic
 
 common library
   build-depends:
-    , aeson >= 2.0.3 && < 2.2
+    , aeson >= 2.0.3 && < 2.3
     , base >= 4.16.0 && < 4.19
     , burrito >= 1.2.0 && < 1.3 || >= 2.0.0 && < 2.1
     , bytestring >= 0.11.3 && < 0.12
