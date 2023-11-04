@@ -5,3 +5,4 @@ allow-newer:
   , burrito:base
   , burrito:template-haskell
   , burrito:transformers
+  , optparse-generic:text
