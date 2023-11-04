@@ -2,14 +2,14 @@
   "services": {
     "devcontainer": {
       "command": "sh -exc 'sleep infinity'",
-      "image": "public.ecr.aws/acilearning/haskell:9.4.7",
+      "image": "public.ecr.aws/acilearning/haskell:9.6.2",
       "init": true,
       "volumes": [
-        ".:/workspaces/github-release",
+        "..:/workspace",
         "cabal-cache:/home/vscode/.cache/cabal",
         "cabal-state:/home/vscode/.local/state/cabal"
       ],
-      "working_dir": "/workspaces/github-release"
+      "working_dir": "/workspace"
     }
   },
   "volumes": {
