@@ -1,8 +1,7 @@
 # [GitHub Release][]
 
-[![Workflow](https://github.com/tfausak/github-release/actions/workflows/workflow.yaml/badge.svg)](https://github.com/tfausak/github-release/actions/workflows/workflow.yaml)
-[![Hackage](https://img.shields.io/hackage/v/github-release)](https://hackage.haskell.org/package/github-release)
-[![Stackage](https://www.stackage.org/package/github-release/badge/nightly?label=stackage)](https://www.stackage.org/package/github-release)
+[![CI](https://github.com/tfausak/github-release/actions/workflows/ci.yml/badge.svg)](https://github.com/tfausak/github-release/actions/workflows/ci.yml)
+[![Hackage](https://badgen.net/hackage/v/github-release)](https://hackage.haskell.org/package/github-release)
 
 GitHub Release is a command-line utility for uploading files to GitHub
 releases.
