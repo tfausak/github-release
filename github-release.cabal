@@ -19,7 +19,6 @@ source-repository head
 
 flag pedantic
   default: False
-  description: Enables @-Werror@, which turns warnings into errors.
   manual: True
 
 common library
@@ -63,6 +62,7 @@ library
     text ^>=2.0.2 || ^>=2.1,
     unordered-containers ^>=0.2.20,
 
+  -- cabal-gild: discover source/library
   exposed-modules: GitHubRelease
   hs-source-dirs: source/library
   other-modules: Paths_github_release
