@@ -109,5 +109,3 @@ on:
   release:
     types:
       - created
-  schedule:
-    - cron: 0 0 * * 1
