@@ -1,1 +1,3 @@
 packages: .
+allow-newer:
+  , optparse-generic:time
