@@ -83,7 +83,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
       - run: sh -exc 'for d in *; do cd $d; tar --extract --file artifact.tar --verbose; cd ..; done'
       - run: cp github-release-${{ github.sha }}-ghc-9.12-ubuntu-24.04/artifact/${{ env.PREFIX }}.tar.gz .
       - run: tar --auto-compress --create --file ../../${{ env.PREFIX }}-darwin-x64.tar.gz --verbose github-release
