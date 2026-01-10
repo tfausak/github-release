@@ -1,3 +1,15 @@
 packages: .
 allow-newer:
+  , aeson:base
+  , aeson:bytestring
+  , aeson:containers
+  , aeson:template-haskell
+  , indexed-traversable-instances:base
+  , indexed-traversable:base
+  , indexed-traversable:containers
   , optparse-generic:time
+  , semialign:base
+  , semialign:containers
+  , these:base
+  , time-compat:base
+  , uuid-types:template-haskell
