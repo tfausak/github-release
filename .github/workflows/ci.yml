@@ -88,8 +88,6 @@ jobs:
       - uses: actions/download-artifact@v7
       - run: sh -exc 'for d in *; do cd $d; tar --extract --file artifact.tar --verbose; cd ..; done'
       - run: cp github-release-${{ github.sha }}-ghc-9.12-ubuntu-24.04/artifact/${{ env.PREFIX }}.tar.gz .
-      - run: tar --auto-compress --create --file ../../${{ env.PREFIX }}-darwin-x64.tar.gz --verbose github-release
-        working-directory: github-release-${{ github.sha }}-ghc-9.12-macos-13/artifact
       - run: tar --auto-compress --create --file ../../${{ env.PREFIX }}-darwin-arm64.tar.gz --verbose github-release
         working-directory: github-release-${{ github.sha }}-ghc-9.12-macos-14/artifact
       - run: tar --auto-compress --create --file ../../${{ env.PREFIX }}-linux-x64.tar.gz --verbose github-release
