@@ -22,7 +22,7 @@ flag pedantic
   manual: True
 
 common library
-  build-depends: base ^>=4.19.0.0 || ^>=4.20.0.0 || ^>=4.21.0.0 || ^>=4.22.0.0
+  build-depends: base ^>=4.20.0.0 || ^>=4.21.0.0 || ^>=4.22.0.0
   default-language: Haskell2010
   ghc-options:
     -Weverything
@@ -53,13 +53,13 @@ library
   build-depends:
     aeson ^>=2.1.2.1 || ^>=2.2.2.0,
     burrito ^>=2.0.1.9,
-    bytestring ^>=0.11.4.0 || ^>=0.12.0.2,
+    bytestring ^>=0.12.0.2,
     http-client ^>=0.7.17,
     http-client-tls ^>=0.3.6.3,
     http-types ^>=0.12.4,
     mime-types ^>=0.1.2.0,
     optparse-generic ^>=1.5.2,
-    text ^>=2.0.2 || ^>=2.1,
+    text ^>=2.1,
     unordered-containers ^>=0.2.20,
 
   -- cabal-gild: discover source/library
