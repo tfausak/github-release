@@ -4,12 +4,16 @@ allow-newer:
   , aeson:bytestring
   , aeson:containers
   , aeson:template-haskell
+  , cborg:base
+  , cborg:containers
   , indexed-traversable-instances:base
   , indexed-traversable:base
   , indexed-traversable:containers
   , optparse-generic:time
   , semialign:base
   , semialign:containers
+  , serialise:base
+  , serialise:containers
   , these:base
   , time-compat:base
   , uuid-types:template-haskell
