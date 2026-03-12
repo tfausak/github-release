@@ -55,7 +55,7 @@ library
     burrito ^>=2.0.1.9,
     bytestring ^>=0.12.0.2,
     http-client ^>=0.7.17,
-    http-client-tls ^>=0.3.6.3,
+    http-client-tls ^>=0.3.6.3 || ^>=0.4.0,
     http-types ^>=0.12.4,
     mime-types ^>=0.1.2.0,
     optparse-generic ^>=1.5.2,
