@@ -92,7 +92,7 @@ jobs:
         working-directory: github-release-${{ github.sha }}-ghc-9.12-ubuntu-24.04/artifact
       - run: tar --auto-compress --create --file ../../${{ env.PREFIX }}-win32-x64.tar.gz --verbose github-release.exe
         working-directory: github-release-${{ github.sha }}-ghc-9.12-windows-2022/artifact
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: ${{ env.PREFIX }}*.tar.gz
       - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' ${{ env.PREFIX }}.tar.gz
