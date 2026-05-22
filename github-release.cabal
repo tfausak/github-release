@@ -51,7 +51,7 @@ library
   import: library
   autogen-modules: Paths_github_release
   build-depends:
-    aeson ^>=2.1.2.1 || ^>=2.2.2.0,
+    aeson ^>=2.1.2 || ^>=2.2.2 || ^>=2.3.0,
     burrito ^>=2.0.1.9,
     bytestring ^>=0.12.0.2,
     http-client ^>=0.7.17,
